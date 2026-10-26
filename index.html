@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Reading List | Yash</title>
+<style>
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --ink: #0f172a;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --line: #e2e8f0;
+  --accent: #f59e0b;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  line-height: 1.6;
+  padding: 2rem 1rem;
+}
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+}
+h1 { font-size: 1.75rem; margin-bottom: 0.5rem; color: var(--ink); }
+p.subtitle { color: var(--muted); margin-bottom: 1.5rem; }
+form { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+input:focus { outline: 2px solid var(--primary); }
+button {
+  background: var(--primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+button:hover { background: #1d4ed8; }
+ul { list-style: none; }
+li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--line);
+}
+li:last-child { border-bottom: none; }
+li.done span { text-decoration: line-through; color: var(--muted); }
+.actions button {
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  margin-left: 0.4rem;
+}
+.actions button:hover { background: #f1f5f9; color: var(--ink); }
+.actions button.delete:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>📚 Reading List</h1>
+  <p class="subtitle">Keep track of the books you want to read.</p>
+  <form id="bookForm">
+    <input id="bookInput" type="text" placeholder="Add book title and author..." required />
+    <button type="submit">Add</button>
+  </form>
+  <ul id="bookList"></ul>
+</div>
+<script>
+const form = document.getElementById('bookForm');
+const input = document.getElementById('bookInput');
+const list = document.getElementById('bookList');
+
+let books = JSON.parse(localStorage.getItem('reading_list') || '[]') || [
+  { id: 1, title: 'Designing Data-Intensive Applications - Martin Kleppmann', done: false },
+  { id: 2, title: 'Hands-On Machine Learning - Aurélien Géron', done: true },
+  { id: 3, title: 'Deep Learning - Ian Goodfellow', done: false }
+];
+
+function save() {
+  localStorage.setItem('reading_list', JSON.stringify(books));
+}
+
+function render() {
+  list.innerHTML = '';
+  books.forEach(b => {
+    const li = document.createElement('li');
+    if (b.done) li.classList.add('done');
+
+    const span = document.createElement('span');
+    span.textContent = b.title;
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = b.done ? 'Undo' : 'Complete';
+    toggleBtn.onclick = () => {
+      b.done = !b.done;
+      save();
+      render();
+    };
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'delete';
+    delBtn.textContent = 'Remove';
+    delBtn.onclick = () => {
+      books = books.filter(item => item.id !== b.id);
+      save();
+      render();
+    };
+
+    actions.appendChild(toggleBtn);
+    actions.appendChild(delBtn);
+    li.appendChild(span);
+    li.appendChild(actions);
+    list.appendChild(li);
+  });
+}
+
+form.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const text = input.value.trim();
+  if (!text) return;
+  books.push({ id: Date.now(), title: text, done: false });
+  input.value = '';
+  save();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
